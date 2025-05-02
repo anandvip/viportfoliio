@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Portfolio Explorer</title>
+    <style>
+        /* Reset and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 28px;
+            text-align: center;
+            margin-bottom: 30px;
+            color: #24292e;
+        }
+
+        h2 {
+            font-size: 20px;
+            margin-bottom: 16px;
+            color: #24292e;
+        }
+
+        /* Card Styles */
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .radio-label {
+            font-weight: normal;
+            display: inline;
+            margin-left: 8px;
+            cursor: pointer;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus {
+            outline: none;
+            border-color: #0366d6;
+            box-shadow: 0 0 0 2px rgba(3, 102, 214, 0.2);
+        }
+
+        .radio-group {
+            margin-bottom: 12px;
+        }
+
+        /* Button Styles */
+        .button-group {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        button {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background-color: #2ea44f;
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background-color: #2c974b;
+        }
+
+        .btn-secondary {
+            background-color: #0366d6;
+            color: white;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background-color: #0255b0;
+        }
+
+        .btn-danger {
+            background-color: #d73a49;
+            color: white;
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            background-color: #cb2431;
+        }
+
+        .btn-center {
+            margin: 0 auto;
+            display: block;
+        }
+
+        /* Status Messages */
+        .success-message {
+            color: #22863a;
+            margin-top: 8px;
+        }
+
+        .error-message {
+            color: #cb2431;
+            margin-top: 8px;
+        }
+
+        .info-text {
+            font-size: 14px;
+            color: #586069;
+            margin-top: 12px;
+        }
+
+        /* Filter and Sort Controls */
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .filter-input {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .controls-right {
+            display: flex;
+            gap: 8px;
+        }
+
+        select {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            background-color: white;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #0366d6;
+            box-shadow: 0 0 0 2px rgba(3, 102, 214, 0.2);
+        }
+
+        /* Repository Grid */
+        .repo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 24px;
+        }
+
+        .repo-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .repo-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .repo-card-body {
+            padding: 20px;
+        }
+
+        .repo-card-footer {
+            background-color: #f6f8fa;
+            padding: 12px 20px;
+            font-size: 14px;
+            color: #586069;
+        }
+
+        .repo-name {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #0366d6;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .repo-description {
+            color: #586069;
+            margin-bottom: 16px;
+            height: 60px;
+            overflow: hidden;
+        }
+
+        .repo-stats {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .repo-stat {
+            background-color: #f1f8ff;
+            color: #0366d6;
+            font-size: 12px;
+            font-weight: 500;
+            padding: 4px 8px;
+            border-radius: 20px;
+        }
+
+        .repo-links {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .repo-link {
+            display: block;
+            text-align: center;
+            padding: 8px 0;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+
+        .repo-link-primary {
+            background-color: #0366d6;
+            color: white;
+        }
+
+        .repo-link-primary:hover {
+            background-color: #0255b0;
+        }
+
+        .repo-link-secondary {
+            background-color: #24292e;
+            color: white;
+        }
+
+        .repo-link-secondary:hover {
+            background-color: #1b1f23;
+        }
+
+        .loading-indicator {
+            text-align: center;
+            margin: 40px 0;
+            font-size: 18px;
+            color: #586069;
+        }
+
+        .empty-message {
+            text-align: center;
+            margin: 40px 0;
+            font-size: 18px;
+            color: #586069;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+            }
+            
+            .controls-right {
+                width: 100%;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>GitHub Portfolio Explorer</h1>
+
+        <!-- Token Management Section -->
+        <div class="card">
+            <h2>GitHub Personal Access Token</h2>
+            <div class="form-group">
+                <input type="password" id="token-input" placeholder="Enter your GitHub Personal Access Token">
+            </div>
+            <div class="button-group">
+                <button id="save-token-btn" class="btn-secondary">Save Token</button>
+                <button id="clear-token-btn" class="btn-danger">Clear Token</button>
+            </div>
+            <div id="token-status"></div>
+            <p class="info-text">Your token will be stored securely in your browser's local storage and is only used to communicate with GitHub's API.</p>
+        </div>
+
+        <!-- User Selection Section -->
+        <div class="card">
+            <h2>Select GitHub User</h2>
+            <div class="radio-group">
+                <input type="radio" id="use-auth-user" name="user-type" checked>
+                <label for="use-auth-user" class="radio-label">Use my account (authenticated with token)</label>
+            </div>
+            <div class="radio-group">
+                <input type="radio" id="use-specific-user" name="user-type">
+                <label for="use-specific-user" class="radio-label">Specify a GitHub username</label>
+            </div>
+            <div id="username-container" style="display: none;" class="form-group">
+                <input type="text" id="username-input" placeholder="Enter GitHub username">
+            </div>
+        </div>
+
+        <!-- Fetch Repositories Button -->
+        <div style="text-align: center; margin: 24px 0;">
+            <button id="fetch-repos-btn" class="btn-primary btn-center" disabled>Fetch Repositories</button>
+        </div>
+
+        <!-- Filter and Sort Section (initially hidden) -->
+        <div id="controls-section" style="display: none;">
+            <div class="controls">
+                <div class="filter-input">
+                    <input type="text" id="filter-input" placeholder="Filter repositories...">
+                </div>
+                <div class="controls-right">
+                    <select id="sort-select">
+                        <option value="updated">Recently Updated</option>
+                        <option value="name">Name</option>
+                        <option value="stars">Stars</option>
+                    </select>
+                    <button id="export-btn" class="btn-secondary">Export Data</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div id="loading-indicator" class="loading-indicator" style="display: none;">
+            Loading repositories...
+        </div>
+
+        <!-- Error Message -->
+        <div id="error-message" class="error-message" style="display: none; text-align: center;">
+        </div>
+
+        <!-- Repositories Grid -->
+        <div id="repo-grid" class="repo-grid">
+            <!-- Repository cards will be added here -->
+        </div>
+
+        <!-- Empty State Message -->
+        <div id="empty-message" class="empty-message" style="display: none;">
+            No repositories found. Click "Fetch Repositories" to load GitHub projects.
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const tokenInput = document.getElementById('token-input');
+        const saveTokenBtn = document.getElementById('save-token-btn');
+        const clearTokenBtn = document.getElementById('clear-token-btn');
+        const tokenStatus = document.getElementById('token-status');
+        const useAuthUser = document.getElementById('use-auth-user');
+        const useSpecificUser = document.getElementById('use-specific-user');
+        const usernameContainer = document.getElementById('username-container');
+        const usernameInput = document.getElementById('username-input');
+        const fetchReposBtn = document.getElementById('fetch-repos-btn');
+        const controlsSection = document.getElementById('controls-section');
+        const filterInput = document.getElementById('filter-input');
+        const sortSelect = document.getElementById('sort-select');
+        const exportBtn = document.getElementById('export-btn');
+        const loadingIndicator = document.getElementById('loading-indicator');
+        const errorMessage = document.getElementById('error-message');
+        const repoGrid = document.getElementById('repo-grid');
+        const emptyMessage = document.getElementById('empty-message');
+
+        // State
+        let repositories = [];
+        let savedToken = localStorage.getItem('github-token') || '';
+
+        // Initialize UI based on saved state
+        document.addEventListener('DOMContentLoaded', () => {
+            // Load token from local storage
+            if (savedToken) {
+                tokenInput.value = savedToken;
+                tokenStatus.innerHTML = '<div class="success-message">Token saved to local storage ✓</div>';
+                fetchReposBtn.disabled = false;
+            }
+
+            // Setup event listeners
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            // Token management
+            saveTokenBtn.addEventListener('click', saveToken);
+            clearTokenBtn.addEventListener('click', clearToken);
+
+            // User selection
+            useAuthUser.addEventListener('change', toggleUsernameInput);
+            useSpecificUser.addEventListener('change', toggleUsernameInput);
+
+            // Repository actions
+            fetchReposBtn.addEventListener('click', fetchRepositories);
+            filterInput.addEventListener('input', filterRepositories);
+            sortSelect.addEventListener('change', sortRepositories);
+            exportBtn.addEventListener('click', exportToJson);
+        }
+
+        function saveToken() {
+            const token = tokenInput.value.trim();
+            if (token) {
+                localStorage.setItem('github-token', token);
+                savedToken = token;
+                tokenStatus.innerHTML = '<div class="success-message">Token saved to local storage ✓</div>';
+                fetchReposBtn.disabled = false;
+            } else {
+                tokenStatus.innerHTML = '<div class="error-message">Please enter a valid token</div>';
+            }
+        }
+
+        function clearToken() {
+            localStorage.removeItem('github-token');
+            savedToken = '';
+            tokenInput.value = '';
+            tokenStatus.innerHTML = '';
+            fetchReposBtn.disabled = true;
+        }
+
+        function toggleUsernameInput() {
+            if (useSpecificUser.checked) {
+                usernameContainer.style.display = 'block';
+                fetchReposBtn.disabled = !savedToken || !usernameInput.value.trim();
+                
+                // Add event listener to username input
+                usernameInput.addEventListener('input', () => {
+                    fetchReposBtn.disabled = !savedToken || !usernameInput.value.trim();
+                });
+            } else {
+                usernameContainer.style.display = 'none';
+                fetchReposBtn.disabled = !savedToken;
+            }
+        }
+
+        async function fetchRepositories() {
+            if (!savedToken) {
+                showError('Please save your GitHub token first');
+                return;
+            }
+
+            if (useSpecificUser.checked && !usernameInput.value.trim()) {
+                showError('Please enter a GitHub username');
+                return;
+            }
+
+            showLoading(true);
+            hideError();
+
+            try {
+                let targetUsername;
+                
+                // If using authenticated user, get their username
+                if (useAuthUser.checked) {
+                    const userResponse = await fetch('https://api.github.com/user', {
+                        headers: {
+                            Authorization: `token ${savedToken}`
+                        }
+                    });
+
+                    if (!userResponse.ok) {
+                        throw new Error('Failed to authenticate with GitHub. Please check your token.');
+                    }
+
+                    const userData = await userResponse.json();
+                    targetUsername = userData.login;
+                } else {
+                    targetUsername = usernameInput.value.trim();
+                }
+
+                // Fetch all repositories for the target user
+                const reposResponse = await fetch(`https://api.github.com/users/${targetUsername}/repos?per_page=100`, {
+                    headers: {
+                        Authorization: `token ${savedToken}`
+                    }
+                });
+
+                if (!reposResponse.ok) {
+                    throw new Error('Failed to fetch repositories');
+                }
+
+                const reposData = await reposResponse.json();
+                
+                // For each repo, check if it has GitHub Pages enabled
+                const reposWithPages = await Promise.all(
+                    reposData.map(async (repo) => {
+                        let pagesUrl = null;
+                        
+                        // Check if this repo has GitHub Pages enabled
+                        if (repo.has_pages) {
+                            // Try to determine the GitHub Pages URL
+                            const pagesResponse = await fetch(`https://api.github.com/repos/${targetUsername}/${repo.name}/pages`, {
+                                headers: {
+                                    Authorization: `token ${savedToken}`
+                                }
+                            });
+                            
+                            if (pagesResponse.ok) {
+                                const pagesData = await pagesResponse.json();
+                                pagesUrl = pagesData.html_url;
+                            } else {
+                                // Fallback to the conventional GitHub Pages URL format
+                                pagesUrl = `https://${targetUsername}.github.io/${repo.name}/`;
+                            }
+                        }
+                        
+                        return {
+                            ...repo,
+                            pagesUrl
+                        };
+                    })
+                );
+                
+                // Update state and UI
+                repositories = reposWithPages;
+                updateRepositoriesUI();
+                controlsSection.style.display = 'block';
+            } catch (err) {
+                showError(err.message);
+                repositories = [];
+                updateRepositoriesUI();
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function updateRepositoriesUI() {
+            // Clear the grid
+            repoGrid.innerHTML = '';
+            
+            // Show empty message if no repos
+            if (repositories.length === 0) {
+                emptyMessage.style.display = 'block';
+                return;
+            }
+            
+            emptyMessage.style.display = 'none';
+            
+            // Filter and sort repositories
+            const filteredAndSortedRepos = getFilteredAndSortedRepos();
+            
+            // Create repo cards
+            filteredAndSortedRepos.forEach(repo => {
+                const card = createRepoCard(repo);
+                repoGrid.appendChild(card);
+            });
+        }
+
+        function getFilteredAndSortedRepos() {
+            // Filter repositories based on search text
+            const filterText = filterInput.value.toLowerCase();
+            const filteredRepos = repositories.filter(repo => 
+                repo.name.toLowerCase().includes(filterText) || 
+                (repo.description && repo.description.toLowerCase().includes(filterText))
+            );
+            
+            // Sort repositories based on selected option
+            const sortBy = sortSelect.value;
+            return [...filteredRepos].sort((a, b) => {
+                switch (sortBy) {
+                    case 'name':
+                        return a.name.localeCompare(b.name);
+                    case 'stars':
+                        return b.stargazers_count - a.stargazers_count;
+                    case 'updated':
+                    default:
+                        return new Date(b.updated_at) - new Date(a.updated_at);
+                }
+            });
+        }
+
+        function createRepoCard(repo) {
+            const card = document.createElement('div');
+            card.className = 'repo-card';
+            
+            // Format the update date
+            const updateDate = new Date(repo.updated_at).toLocaleDateString();
+            
+            card.innerHTML = `
+                <div class="repo-card-body">
+                    <h3 class="repo-name" title="${repo.name}">${repo.name}</h3>
+                    <p class="repo-description">${repo.description || 'No description available'}</p>
+                    <div class="repo-stats">
+                        <span class="repo-stat">⭐ ${repo.stargazers_count}</span>
+                        <span class="repo-stat">🍴 ${repo.forks_count}</span>
+                        ${repo.language ? `<span class="repo-stat">${repo.language}</span>` : ''}
+                    </div>
+                    <div class="repo-links">
+                        <a href="${repo.html_url}" target="_blank" class="repo-link repo-link-secondary">View Repository</a>
+                        ${repo.pagesUrl ? `<a href="${repo.pagesUrl}" target="_blank" class="repo-link repo-link-primary">View GitHub Pages</a>` : ''}
+                    </div>
+                </div>
+                <div class="repo-card-footer">
+                    Last updated: ${updateDate}
+                </div>
+            `;
+            
+            return card;
+        }
+
+        function filterRepositories() {
+            updateRepositoriesUI();
+        }
+
+        function sortRepositories() {
+            updateRepositoriesUI();
+        }
+
+        function exportToJson() {
+            const dataStr = JSON.stringify(repositories, null, 2);
+            const dataUri = `data:application/json;charset=utf-8,${encodeURIComponent(dataStr)}`;
+            
+            const exportFileDefaultName = 'github-portfolio-data.json';
+            
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+        }
+
+        function showLoading(isLoading) {
+            loadingIndicator.style.display = isLoading ? 'block' : 'none';
+            fetchReposBtn.disabled = isLoading;
+        }
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+        }
+
+        function hideError() {
+            errorMessage.style.display = 'none';
+        }
+    </script>
+</body>
+</html>
