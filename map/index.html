@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Repository Mind Map</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .mindmap-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* SVG for clean connection lines */
+        .connections-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .connection-line {
+            stroke: rgba(255, 255, 255, 0.6);
+            stroke-width: 2;
+            fill: none;
+        }
+
+        .sub-connection-line {
+            stroke: rgba(255, 255, 255, 0.4);
+            stroke-width: 1;
+            fill: none;
+        }
+
+        .center-node {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 20px;
+            font-size: 16px;
+            font-weight: 600;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            border: 2px solid rgba(255,255,255,0.9);
+            z-index: 10;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .branch {
+            position: absolute;
+            z-index: 5;
+        }
+
+        .category-node {
+            background: rgba(255, 255, 255, 0.95);
+            color: #374151;
+            padding: 12px 20px;
+            border-radius: 16px;
+            font-weight: 600;
+            font-size: 13px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255,255,255,0.8);
+            min-width: 160px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .category-node:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 25px rgba(0,0,0,0.25);
+            background: white;
+        }
+
+        .category-node small {
+            display: block;
+            font-weight: 400;
+            opacity: 0.7;
+            font-size: 11px;
+            margin-top: 2px;
+        }
+
+        .repo-container {
+            position: absolute;
+            display: none;
+            z-index: 3;
+        }
+
+        .repo-container.show {
+            display: block;
+        }
+
+        .repo-node {
+            background: rgba(134, 239, 172, 0.9);
+            color: #1f2937;
+            padding: 8px 14px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 4px 0;
+            border: 1px solid rgba(134, 239, 172, 0.6);
+            min-width: 120px;
+            text-align: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .repo-node:hover {
+            transform: scale(1.05);
+            background: rgba(134, 239, 172, 1);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+        }
+
+        .stats {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 12px;
+            color: #374151;
+            z-index: 15;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.8);
+        }
+
+        /* Systematic radial positioning - 8 branches at 45° intervals */
+        .branch:nth-child(2) { 
+            left: 50%; 
+            top: 25%; 
+            transform: translateX(-50%); 
+        }
+        
+        .branch:nth-child(3) { 
+            right: 20%; 
+            top: 32%; 
+        }
+        
+        .branch:nth-child(4) { 
+            right: 15%; 
+            top: 50%; 
+            transform: translateY(-50%); 
+        }
+        
+        .branch:nth-child(5) { 
+            right: 20%; 
+            bottom: 32%; 
+        }
+        
+        .branch:nth-child(6) { 
+            left: 50%; 
+            bottom: 25%; 
+            transform: translateX(-50%); 
+        }
+        
+        .branch:nth-child(7) { 
+            left: 20%; 
+            bottom: 32%; 
+        }
+        
+        .branch:nth-child(8) { 
+            left: 15%; 
+            top: 50%; 
+            transform: translateY(-50%); 
+        }
+        
+        .branch:nth-child(9) { 
+            left: 20%; 
+            top: 32%; 
+        }
+
+        /* Repo positioning - cleaner, more systematic */
+        .repo-container {
+            width: 140px;
+        }
+
+        .branch:nth-child(2) .repo-container { top: 50px; left: -70px; }
+        .branch:nth-child(3) .repo-container { top: -60px; left: -160px; }
+        .branch:nth-child(4) .repo-container { top: -60px; left: -160px; }
+        .branch:nth-child(5) .repo-container { bottom: 50px; left: -160px; }
+        .branch:nth-child(6) .repo-container { bottom: 50px; left: -70px; }
+        .branch:nth-child(7) .repo-container { bottom: -60px; right: -160px; }
+        .branch:nth-child(8) .repo-container { top: -60px; right: -160px; }
+        .branch:nth-child(9) .repo-container { top: -60px; right: -160px; }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            body { overflow-y: auto; }
+            
+            .mindmap-container {
+                height: auto;
+                min-height: 100vh;
+                flex-direction: column;
+                padding: 20px;
+            }
+
+            .connections-svg { display: none; }
+
+            .center-node {
+                position: relative;
+                left: auto;
+                top: auto;
+                transform: none;
+                margin: 20px 0;
+            }
+
+            .branch {
+                position: relative;
+                left: auto !important;
+                top: auto !important;
+                right: auto !important;
+                bottom: auto !important;
+                transform: none !important;
+                margin: 15px 0;
+                width: 100%;
+            }
+
+            .category-node {
+                width: 100%;
+                padding: 16px;
+                font-size: 14px;
+            }
+
+            .repo-container {
+                position: relative;
+                left: auto !important;
+                top: auto !important;
+                right: auto !important;
+                bottom: auto !important;
+                width: 100%;
+                margin-top: 10px;
+            }
+
+            .repo-node {
+                width: 100%;
+                padding: 12px;
+                font-size: 12px;
+                margin: 6px 0;
+            }
+
+            .stats {
+                position: relative;
+                margin: 20px auto;
+                width: fit-content;
+            }
+        }
+
+        .tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            pointer-events: none;
+            z-index: 1000;
+            white-space: nowrap;
+            display: none;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .category-node, .repo-node {
+            animation: fadeIn 0.4s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="mindmap-container">
+        <!-- Clean SVG connection lines -->
+        <svg class="connections-svg" id="connectionsSvg"></svg>
+
+        <div class="center-node">
+            anandvip<br>
+            <small style="font-weight: 400; opacity: 0.9;">395 Repositories</small>
+        </div>
+
+        <div class="stats">
+            <strong>Repository Overview:</strong><br>
+            Total Repositories: 395<br>
+            Total Stars: 11<br>
+            Languages: 9<br>
+            Topics: 27<br>
+            Pages: 359
+        </div>
+
+        <!-- Web Development -->
+        <div class="branch">
+            <div class="category-node" onclick="toggleRepos('web-dev', this)">
+                Web Development
+                <small>HTML • JavaScript • CSS</small>
+            </div>
+            <div class="repo-container" id="web-dev">
+                <div class="repo-node" onclick="openRepo('https://anandvip.github.io/repotool/')" title="Repository organization tool">repotool</div>
+                <div class="repo-node" onclick="openRepo('https://anandvip.github.io/thoughts/')" title="Thought processing app">thoughts</div>
+                <div class="repo-node" onclick="openRepo('https://anandvip.github.io/dwarf-aaf/')" title="Research report tool">dwarf-aaf</div>
+                <div class="repo-node" onclick="openRepo('https://anandvip.github.io/cmd-2/')" title="Command interface">cmd-2</div>
+                <div class="repo-node" onclick="openRepo('https://www.vipulanand.in/')" title="Graphics portfolio">va-graphics</div>
+            </div>
+        </div>
+
+        <!-- Personal Growth -->
+        <div class="branch">
+            <div class="category-node" onclick="toggleRepos('personal-growth', this)">
+                Personal Growth
+                <small>Meditation • Self-Development</small>
+            </div>
+            <div class="repo-container" id="personal-growth">
+                <div class="repo-node" onclick="openRepo('https://anandvip.github.io/wealth-and-wisdom/')" title="Wealth consciousness">wealth-and-wisdom</div>
+                <div class="repo-node" onclick="openRepo('https://om.vipulanand.in/')" title="Meditation practice">OM</div>
+                <div class="repo-node" onclick="openRepo('https://anandvip.github.io/va-pomodoro2/')" title="Learning discipline">va-pomodoro2</div>
+                <div class="repo-node" onclick="openRepo('https://112.vipulanand.in/')" title="Ways to attain bliss">112ways</div>
+            </div>
+        </div>
+
+        <!-- Agriculture & Farming -->
+        <div class="branch">
+            <div class="category-node" onclick="toggleRepos('agriculture', this)">
+                Agriculture & Farming
+                <small>Farm Management • Tools</small>
+            </div>
+            <div class="repo-container" id="agriculture">
+                <div class="repo-node" onclick="openRepo('https://anandvip.github.io/farm-card/')" title="Farm card system">farm-card</div>
+                <div class="repo-node" onclick="openRepo('https://farms.vipulanand.in/')" title="Land sale analysis">farmlandsale-analysis</div>
+                <div class="repo-node" onclick="openRepo('https://anandvip.github.io/va-contractfarming/')" title="Contract farming">va-contractfarming</div>
+                <div class="repo-node" onclick="openRepo('https://anandvip.github.io/plantcalc/')" title="Plant calculations">plantcalc</div>
+            </div>
+        </div>
+
+        <!-- Financial Tools -->
+        <div class="branch">
+            <div class="category-node" onclick="toggleRepos('financial', this)">
+                Financial Tools
+                <small>FD • Investment • Calculators</small>
+            </div>
+            <div class="repo-container" id="financial">
+                <div class="repo-node" onclick="openRepo('https://anandvip.github.io/fd-laddering-2/')" title="FD laddering system">fd-laddering-2</div>
+                <div class="repo-node" onclick="openRepo('https://anandvip.github.io/fd-tools/')" title="FD management">fd-tools</div>
+                <div class="repo-node" onclick="openRepo('https://anandvip.github.io/financial-engine/')" title="Wealth engine">financial-engine</div>
+                <div class="repo-node" onclick="openRepo('https://anandvip.github.io/financial/')" title="Financial planning">financial</div>
+            </div>
+        </div>
+
+        <!-- Utilities & Tools -->
+        <div class="branch">
+            <div class="category-node" onclick="toggleRepos('utilities', this)">
+                Utilities & Tools
+                <small>Productivity • Apps</small>
+            </div>
+            <div class="repo-container" id="utilities">
+                <div class="repo-node" onclick="openRepo('http://notes.vipulanand.in/')" title="Notes application">va-notes2025</div>
+                <div class="repo-node" onclick="openRepo('https://design.vipulanand.in/')" title="Design tools">va-design-tools</div>
+                <div class="repo-node" onclick="openRepo('https://anandvip.github.io/va-webtools/')" title="Web utilities">va-webtools</div>
+                <div class="repo-node" onclick="openRepo('https://anandvip.github.io/todo-va/')" title="Todo application">todo-va</div>
+            </div>
+        </div>
+
+        <!-- Experimental -->
+        <div class="branch">
+            <div class="category-node" onclick="toggleRepos('experimental', this)">
+                Experimental
+                <small>Research • Prototypes</small>
+            </div>
+            <div class="repo-container" id="experimental">
+                <div class="repo-node" onclick="openRepo('https://github.com/anandvip/decap-website')" title="CMS documentation">decap-website</div>
+                <div class="repo-node" onclick="openRepo('https://github.com/anandvip/APTRS')" title="Security reporting">APTRS</div>
+                <div class="repo-node" onclick="openRepo('https://github.com/anandvip/mystic-maestro')" title="Experimental project">mystic-maestro</div>
+            </div>
+        </div>
+
+        <div class="tooltip" id="tooltip"></div>
+    </div>
+
+    <script>
+        let activeCategory = null;
+
+        function toggleRepos(categoryId, categoryNode) {
+            const repoContainer = document.getElementById(categoryId);
+            
+            // Close previously open category
+            if (activeCategory && activeCategory !== repoContainer) {
+                activeCategory.classList.remove('show');
+            }
+            
+            // Toggle current category
+            repoContainer.classList.toggle('show');
+            activeCategory = repoContainer.classList.contains('show') ? repoContainer : null;
+            
+            drawConnections();
+        }
+
+        function openRepo(url) {
+            window.open(url, '_blank');
+        }
+
+        function drawConnections() {
+            const svg = document.getElementById('connectionsSvg');
+            if (window.innerWidth <= 768) return;
+            
+            svg.innerHTML = '';
+            
+            const centerX = window.innerWidth / 2;
+            const centerY = window.innerHeight / 2;
+            
+            // Draw clean straight lines from center to each category
+            document.querySelectorAll('.branch').forEach(branch => {
+                const categoryNode = branch.querySelector('.category-node');
+                const rect = categoryNode.getBoundingClientRect();
+                const branchX = rect.left + rect.width / 2;
+                const branchY = rect.top + rect.height / 2;
+                
+                // Main connection line - straight and clean
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', centerX);
+                line.setAttribute('y1', centerY);
+                line.setAttribute('x2', branchX);
+                line.setAttribute('y2', branchY);
+                line.classList.add('connection-line');
+                svg.appendChild(line);
+                
+                // Sub-connections to repos if expanded
+                const repoContainer = branch.querySelector('.repo-container');
+                if (repoContainer && repoContainer.classList.contains('show')) {
+                    const repos = repoContainer.querySelectorAll('.repo-node');
+                    repos.forEach(repo => {
+                        const repoRect = repo.getBoundingClientRect();
+                        const repoX = repoRect.left + repoRect.width / 2;
+                        const repoY = repoRect.top + repoRect.height / 2;
+                        
+                        const subLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                        subLine.setAttribute('x1', branchX);
+                        subLine.setAttribute('y1', branchY);
+                        subLine.setAttribute('x2', repoX);
+                        subLine.setAttribute('y2', repoY);
+                        subLine.classList.add('sub-connection-line');
+                        svg.appendChild(subLine);
+                    });
+                }
+            });
+        }
+
+        // Tooltip handling
+        document.querySelectorAll('.repo-node').forEach(node => {
+            node.addEventListener('mouseenter', function(e) {
+                const tooltip = document.getElementById('tooltip');
+                tooltip.textContent = this.title || 'Click to open';
+                tooltip.style.display = 'block';
+                tooltip.style.left = e.pageX + 10 + 'px';
+                tooltip.style.top = e.pageY - 30 + 'px';
+            });
+
+            node.addEventListener('mouseleave', function() {
+                document.getElementById('tooltip').style.display = 'none';
+            });
+
+            node.addEventListener('mousemove', function(e) {
+                const tooltip = document.getElementById('tooltip');
+                tooltip.style.left = e.pageX + 10 + 'px';
+                tooltip.style.top = e.pageY - 30 + 'px';
+            });
+        });
+
+        // Initialize
+        window.addEventListener('load', drawConnections);
+        window.addEventListener('resize', drawConnections);
+        
+        // Draw initial connections
+        setTimeout(drawConnections, 100);
+    </script>
+</body>
+</html>
